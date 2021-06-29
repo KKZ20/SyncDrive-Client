@@ -1,8 +1,10 @@
 import process from 'process';
 import minimist from 'minimist';
 import inquirer from 'inquirer';
-
+import path from 'path';
 import { Login } from './Login.js';
+import { SignUp } from './signup.js';
+import * as utils from '../utils/utils.js';
 const PARANUM = 2;
 
 function Usage() {
@@ -51,8 +53,13 @@ if (args.hasOwnProperty('r') || args.hasOwnProperty('register')) {
     ]).then(answers => {
         username = answers.username;
         passwd = answers.passwd;
-        console.log('用户名：', username);
-        console.log('密码：', passwd);
+        // console.log('用户名：', username);
+        // console.log('密码：', passwd);
+        let user = new SignUp(username, passwd);
+        if (user.register() === utils.OK) {
+            console.log('注册成功');
+            process.exit(-1);
+        };
     });
 }
 
@@ -74,7 +81,7 @@ else if (args.hasOwnProperty('u') || args.hasOwnProperty('user')) {
     ]).then(answers => {
         username = answers.username;
         passwd = answers.passwd;
-        let userinfo = new SignIn(username, passwd);
+        let userinfo = new Login(username, passwd);
     });
 }
 else if (args.hasOwnProperty('h') || args.hasOwnProperty('help') || process.argv.length === 2) {

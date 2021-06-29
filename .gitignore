@@ -2,5 +2,6 @@
 .DS_Store
 .vscode
 node_modules
+src/test.js
 # not ignore
 !.gitkeep

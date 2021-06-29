@@ -2,13 +2,19 @@
   "name": "syncdrive-client-v2",
   "version": "1.0.0",
   "description": "",
-  "main": "src/main.js",
+  "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
+  "type": "module",
   "dependencies": {
-    "chalk": "^4.1.1"
+    "axios": "^0.21.1",
+    "chalk": "^4.1.1",
+    "inquirer": "^8.1.1",
+    "minimist": "^1.2.5",
+    "net": "^1.0.2",
+    "sha256": "^0.2.0"
   }
 }
