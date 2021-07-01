@@ -112,6 +112,12 @@ class Sync {
     async UploadSingleFile(fileInfo) {
         // 首先进行一个初次确认
         let fistCommitRes = await this.postCommit(fileInfo);
+
+        //FIXME: 改名
+        if (fistCommitRes.data.result === 'RENAME') {
+            console.log('本机文件', fileInfo.filePath, '要进行改名');
+            return 1;
+        }
         // console.log(fistCommitRes.data);
         if (fistCommitRes.data.result === 'OK') {
             // 这个文件不需要同步
@@ -246,6 +252,16 @@ class Sync {
             }
             else if (status === -1) {
                 console.log('没传完！重来！');
+                i--;
+            }
+            else if (status === 1) {
+                //TODO:  改名
+                let tmpName = that.fileInfo[i].filePath;
+                fs.renameSync(that.fileInfo[i].filePath, that.fileInfo[i].filePath + 'rename');
+                that.fileInfo[i].filePath += '-rename';
+                console.log(tmpName, '已改名为', that.fileInfo[i].filePath);
+                ClientLog(new Log(this.username, LOGTYPE.WARNING, new Date().toLocaleString(),
+                    that.fileInfo[i].filePath, OPERATION.RENAME));
                 i--;
             }
             // // 首先进行一个初次确认

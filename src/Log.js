@@ -15,6 +15,7 @@ const OPERATION = {
     BIND: 3,
     UNBIND: 4,
     REBIND: 5,
+    RENAME: 8,
 };
 
 
@@ -86,6 +87,9 @@ function ClientLog(log) {
                 break;
             case OPERATION.REMOVELOCAL:
                 logcontent += '删除文件（本地）: ';
+                break;
+            case OPERATION.RENAME:
+                logcontent += '本地文件改名: ';
                 break;
         }
 
