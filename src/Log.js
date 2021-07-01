@@ -11,6 +11,7 @@ const OPERATION = {
     UPLOAD: 1,
     DOWNLOAD: 2,
     REMOVE: 6,
+    REMOVELOCAL: 7,
     BIND: 3,
     UNBIND: 4,
     REBIND: 5,
@@ -81,7 +82,10 @@ function ClientLog(log) {
                 logcontent += '解绑目录: ';
                 break;
             case OPERATION.REMOVE:
-                logcontent += '删除文件: ';
+                logcontent += '删除文件（服务端）: ';
+                break;
+            case OPERATION.REMOVELOCAL:
+                logcontent += '删除文件（本地）: ';
                 break;
         }
 

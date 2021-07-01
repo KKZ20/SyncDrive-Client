@@ -167,35 +167,58 @@ class Sync {
 
     // 请求下载一个文件块
     // 这里请求下载指定文件的指定文件块，然后返回
-    async downloadChunk(chunkno, filePath) {
+    async downloadChunk(hash) {
         return axios.post(URL, {
-            
-        })
+            action: 'retrieve',
+            hash_list: [hash],
+            length: 1,
+        });
     }
 
     // 请求下载一个文件
     
     async DownloadSingleFile(fileListItem) {
         // 先初始化一个长度为服务端下载文件块数的一个数组
-        let contentArr = new Array(fileListItem.block_list.length);
+        let contentArr = new Array(fileListItem.length);
         contentArr.fill('');
 
-        for (let i = 0; i < fileListItem.block_list.length; i++){
-            let chunkDownloadRes = await this.downloadChunk(fileListItem.block_list[i]);
+        let targetPath = this.localSyncDir + fileListItem.path;
+
+        for (let i = 0; i < fileListItem.length; i++){
+            let chunkDownloadRes = await this.downloadChunk(fileListItem.hash_list[i]);
+            let tmp = '';
             // 这时候读到了一块
             console.log(chunkDownloadRes.data);
-
-            //TODO: 这里把读到的数据放到contentArr的对应位置
+            if (chunkDownloadRes.data.result === 'OK') {
+                tmp = chunkDownloadRes.data.block_list[0];
+                console.log(targetPath, ' 同步（下载）进度: 已传', i + 1, '块, 共', fileListItem.length, '块');
+                //TODO: 这里把读到的数据放到contentArr的对应位置
+                contentArr[i] = tmp;
+            }
+            else if (chunkDownloadRes.data.result === 'ERROR') {
+                console.log(targetPath, '当前块未下载成功');
+                i--;
+            }
         }
 
         if (contentArr.indexOf('') !== -1) {
             //TODO: 这里代表并没有传输完成
-
             return -1;
         }
         else {
             //TODO: 写入文件
-
+            let content = '';
+            for (let cont of contentArr) {
+                content += cont;
+            }
+            if (content.length !== fileListItem.size) {
+                console.log(targetPath, ': 文件大小没弄对');
+                process.exit(-1);
+            }
+            fs.writeFileSync(targetPath, content);
+            console.log(targetPath, '下载完成\n');
+            ClientLog(new Log(this.username, LOGTYPE.INFO, new Date().toLocaleString(),
+                targetPath, OPERATION.DOWNLOAD));
             return 0;
         }
     }
@@ -308,18 +331,57 @@ class Sync {
             file_list: fileList,
         });
         // 根据返回结果，进行不同操作
+        // console.log('下载的返回报文数据: ', listRes.data.file_list[0].hash_list);
         console.log('下载的返回报文数据: ', listRes.data);
-        // process.exit(-1);
+
         // 无需任何下载，服务端和本地一致
         if (listRes.data.result === 'OK' && listRes.data.file_list.length === 0) {
             console.log('当前本地文件与服务端文件一致，无需同步');
-            // process.exit(-1);
-            return 0;
         }
         // 有需要下载的文件，开始下载
         else if (listRes.data.result === 'OK' && listRes.data.file_list.length !== 0) {
-            console.log();
+            let downloadList = listRes.data.file_list;
             //TODO: 循环每一个文件开始下载
+            for (let i = 0; i < downloadList.length; i++){
+                // 如果是文件夹直接创建即可
+                if (downloadList[i].type === 'folder') {
+                    let dirPath = that.localSyncDir + downloadList[i].path;
+                    if (utils.FileExist(dirPath)) {
+                        console.log('文件夹', dirPath, '已存在， 看看是不是哪里弄错了');
+                        process.exit(-1);
+                        // continue;
+                    }
+                    fs.mkdirSync(dirPath);
+                    console.log(dirPath, '文件夹下载完成');
+                    ClientLog(new Log(this.username, LOGTYPE.INFO, new Date().toLocaleString(),
+                        dirPath, OPERATION.DOWNLOAD));
+                    continue;
+                }
+                let status = await that.DownloadSingleFile(downloadList[i]);
+                if (status === 0) {
+                    console.log('下载成功！下一位！');
+                }
+                else if (status === -1) {
+                    console.log('没下载好，重来！');
+                    i--;
+                }
+            }
+        }
+        else {
+            console.log('出大事情了！');
+            process.exit(-1);
+        }
+
+        // 删除本地的文件
+        if (listRes.data.result === 'OK' && listRes.data.remove_list.length !== 0) {
+            let removeList = listRes.data.remove_list;
+            for (let i = 0; i < removeList; i++){
+                let removePath = that.localSyncDir + removeList[i];
+                fs.rmSync(removePath, { recursive: true, force: true });
+                console.log(removePath, '删除成功\n');
+                ClientLog(new Log(this.username, LOGTYPE.INFO, new Date().toLocaleString(),
+                    removePath, OPERATION.REMOVELOCAL));
+            }
         }
 
         // 本次流程全部结束

@@ -29,3 +29,8 @@
 [INFO]2021/7/1 下午3:02:28 同步（上传）【秒】: D:/SyncDir/subdir1/subdir1-1/11.ucf
 [INFO]2021/7/1 下午3:02:31 同步（上传）: D:/SyncDir/subdirrr
 [INFO]2021/7/1 下午3:02:37 同步（上传）: D:/SyncDir/zzk.v
+
+------------------退出登录------------------
+
+[INFO]2021/7/1 下午4:57:44 同步（下载）: D:/SyncDir/123.txt
+[INFO]2021/7/1 下午4:57:44 同步（下载）: D:/SyncDir/subdirrr
