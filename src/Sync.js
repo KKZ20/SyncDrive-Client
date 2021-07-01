@@ -248,7 +248,7 @@ class Sync {
             // 文件大小不为0是才上传
             let status = await that.UploadSingleFile(that.fileInfo[i]);
             if (status === 0) {
-                // console.log('下一位！');
+                console.log(that.fileInfo[i].filePath, '不用传，下一位！');
             }
             else if (status === -1) {
                 console.log('没传完！重来！');
@@ -257,7 +257,7 @@ class Sync {
             else if (status === 1) {
                 //TODO:  改名
                 let tmpName = that.fileInfo[i].filePath;
-                fs.renameSync(that.fileInfo[i].filePath, that.fileInfo[i].filePath + 'rename');
+                fs.renameSync(that.fileInfo[i].filePath, that.fileInfo[i].filePath + '-rename');
                 that.fileInfo[i].filePath += '-rename';
                 console.log(tmpName, '已改名为', that.fileInfo[i].filePath);
                 ClientLog(new Log(this.username, LOGTYPE.WARNING, new Date().toLocaleString(),
@@ -362,12 +362,13 @@ class Sync {
                 // 如果是文件夹直接创建即可
                 if (downloadList[i].type === 'folder') {
                     let dirPath = that.localSyncDir + downloadList[i].path;
-                    if (utils.FileExist(dirPath)) {
-                        console.log('文件夹', dirPath, '已存在， 看看是不是哪里弄错了');
-                        process.exit(-1);
+                    if (!utils.FileExist(dirPath)) {
+                        // console.log('文件夹', dirPath, '已存在， 看看是不是哪里弄错了');
+                        // process.exit(-1);
                         // continue;
+                        fs.mkdirSync(dirPath);
                     }
-                    fs.mkdirSync(dirPath);
+                    
                     console.log(dirPath, '文件夹下载完成');
                     ClientLog(new Log(this.username, LOGTYPE.INFO, new Date().toLocaleString(),
                         dirPath, OPERATION.DOWNLOAD));
