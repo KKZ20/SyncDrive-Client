@@ -3,10 +3,9 @@ import minimist from 'minimist';
 import inquirer from 'inquirer';
 import path from 'path';
 import { Login } from './Login.js';
-import { SignUp } from './signup.js';
+import { SignUp } from './SignUp.js';
 import * as utils from '../utils/utils.js';
 const PARANUM = 2;
-
 function Usage() {
     console.log('usage');
 }
@@ -56,10 +55,15 @@ if (args.hasOwnProperty('r') || args.hasOwnProperty('register')) {
         // console.log('用户名：', username);
         // console.log('密码：', passwd);
         let user = new SignUp(username, passwd);
-        if (user.register() === utils.OK) {
-            console.log('注册成功');
+        let res = user.register();
+        if (res === utils.OK) {
+            console.log('注册成功！请重新启动程序进行登录！');
             process.exit(-1);
-        };
+        }
+        else if (res === utils.ERROR) {
+            console.log('用户名已存在，请重新注册！');
+            process.exit(-1);
+        }
     });
 }
 
@@ -82,6 +86,8 @@ else if (args.hasOwnProperty('u') || args.hasOwnProperty('user')) {
         username = answers.username;
         passwd = answers.passwd;
         let userinfo = new Login(username, passwd);
+        // 用户登录
+        userinfo.login();
     });
 }
 else if (args.hasOwnProperty('h') || args.hasOwnProperty('help') || process.argv.length === 2) {

@@ -3,5 +3,7 @@
 .vscode
 node_modules
 src/test.js
+log/*.log
+result/*.json
 # not ignore
 !.gitkeep
