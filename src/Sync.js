@@ -47,7 +47,7 @@ class Sync {
     // 先把本机同步目录下所有的文件遍历一遍
     SyncPrepare() {
         this.filePathList = utils.GetFileList(this.localSyncDir);
-        console.log('本机同步目录下全部文件：', this.filePathList);
+        // console.log('本机同步目录下全部文件：', this.filePathList);
         // 先清空
         this.fileInfo = [];
         // 这个时候的fileNameList应该是含所有文件绝对路径的一个数组
@@ -112,7 +112,7 @@ class Sync {
     async UploadSingleFile(fileInfo) {
         // 首先进行一个初次确认
         let fistCommitRes = await this.postCommit(fileInfo);
-        console.log(fistCommitRes.data);
+        // console.log(fistCommitRes.data);
         if (fistCommitRes.data.result === 'OK') {
             // 这个文件不需要同步
             //TODO: 这里要打印信息
@@ -145,7 +145,7 @@ class Sync {
             //TODO: 这里是要上传块
             let chunkStoreRes = await this.postChunk([fileInfo.hashList[needList[j]]], [fileInfo.chunkList[needList[j]]]);
             
-            console.log('块上传: ', needList[j], '号块, ', chunkStoreRes.data);
+            // console.log('块上传: ', needList[j], '号块, ', chunkStoreRes.data);
             //TODO: 这里要打印进度
             console.log(fileInfo.filePath, ' 同步（上传）进度: 已传', j + 1, '块, 共', needList.length, '块');
         }
@@ -242,7 +242,7 @@ class Sync {
             // 文件大小不为0是才上传
             let status = await that.UploadSingleFile(that.fileInfo[i]);
             if (status === 0) {
-                console.log('下一位！');
+                // console.log('下一位！');
             }
             else if (status === -1) {
                 console.log('没传完！重来！');
@@ -318,7 +318,7 @@ class Sync {
                 mtime: this.fileInfo[i].fileTime,
             });
         }
-        console.log(fileList);
+        // console.log(fileList);
         let that = this;
         if (isInit) {
             console.log('-------------------------服务端文件下载----------------------------');
@@ -332,7 +332,7 @@ class Sync {
         });
         // 根据返回结果，进行不同操作
         // console.log('下载的返回报文数据: ', listRes.data.file_list[0].hash_list);
-        console.log('下载的返回报文数据: ', listRes.data);
+        // console.log('下载的返回报文数据: ', listRes.data);
 
         // 无需任何下载，服务端和本地一致
         if (listRes.data.result === 'OK' && listRes.data.file_list.length === 0) {
@@ -359,7 +359,7 @@ class Sync {
                 }
                 let status = await that.DownloadSingleFile(downloadList[i]);
                 if (status === 0) {
-                    console.log('下载成功！下一位！');
+                    // console.log('下载成功！下一位！');
                 }
                 else if (status === -1) {
                     console.log('没下载好，重来！');
@@ -435,7 +435,7 @@ class Sync {
         // 添加一个目录
         watcher.on('addDir', async (Epath) => {
             let path = Epath.split('\\').join('/');
-            console.log(path, typeof (path));
+            // console.log(path, typeof (path));
             let fileStat = utils.GetFileState(path);
             let fileContent = utils.GenerateHashList(path);
             let fileInfo = new FileInfo(path, fileStat.type, fileStat.size,
@@ -468,16 +468,21 @@ class Sync {
         //TODO: 删除一个目录
         watcher.on('unlinkDir', async (Epath) => {
             let path = Epath.split('\\').join('/');
-            console.log(path);
+            // console.log(path);
             let res = await axios.post(URL, {
                 action: 'remove',
                 uid: that.uid,
                 path: path.slice(that.localSyncDir.length),
             });
-            console.log('删除文件夹: ', res.data);
+            // console.log('删除文件夹: ', res.data);
             if (res.data.result === 'OK') {
+                console.log(path, '删除成功');
                 ClientLog(new Log(that.username, LOGTYPE.INFO, new Date().toLocaleString(),
                     path, OPERATION.REMOVE));
+            }
+            else {
+                console.log('删除文件夹出错！');
+                process.exit(-1);
             }
         });
         //TODO: 删除一个文件
@@ -488,16 +493,20 @@ class Sync {
                 uid: that.uid,
                 path: path.slice(that.localSyncDir.length),
             });
-            console.log('删除文件: ', res.data);
             if (res.data.result === 'OK') {
+                console.log(path, '删除成功');
                 ClientLog(new Log(that.username, LOGTYPE.INFO, new Date().toLocaleString(),
                     path, OPERATION.REMOVE));
+            }
+            else {
+                console.log('删除文件夹出错！');
+                process.exit(-1);
             }
         });
 
         // 发送心跳包，注意是与监听并行的
         // setInterval(that.FileSyncDownload(), 1000);
-        that.FileSyncDownload(500, false);
+        that.FileSyncDownload(5000, false);
         //TODO: 退出程序
         utils.LogOut(that.username);
     }
